@@ -1,0 +1,598 @@
+[index.html](https://github.com/user-attachments/files/29927103/index.html)
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Онлайн-расклад Таро от Милы</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1a0033 0%, #2d004d 50%, #1a0033 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 40px 0 20px;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            color: #e0b0ff;
+            margin-bottom: 40px;
+            font-weight: bold;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 40px 0;
+        }
+
+        button, .order-btn {
+            padding: 20px 40px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border: 3px solid #ffd700;
+            background: linear-gradient(135deg, #4a0080 0%, #6a00a0 100%);
+            color: #ffd700;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        button:hover, .order-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.5);
+            background: linear-gradient(135deg, #6a00a0 0%, #8a00c0 100%);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .card-display {
+            margin: 40px auto;
+            max-width: 500px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .card-display.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card-image {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.4);
+            border: 5px solid #ffd700;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .card-name {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #ffd700;
+            margin: 20px 0 15px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        }
+
+        .card-description {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #e0b0ff;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(74, 0, 128, 0.3);
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 60px;
+            padding: 20px;
+            color: #b080ff;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .subtitle {
+                font-size: 1.1em;
+            }
+
+            button, .order-btn {
+                padding: 15px 30px;
+                font-size: 1.1em;
+            }
+
+            .card-name {
+                font-size: 1.8em;
+            }
+
+            .card-description {
+                font-size: 1em;
+            }
+        }
+
+        .loading {
+            display: none;
+            font-size: 1.5em;
+            color: #ffd700;
+            margin: 20px 0;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 1.1em;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    
+    <div class="container">
+        <h1>✨ Онлайн-расклад Таро от Милы ✨</h1>
+        <p class="subtitle">Узнайте, что приготовила вам судьба</p>
+
+        <div class="buttons">
+            <button onclick="drawCard()">🔮 Вытянуть карту</button>
+            <a href="https://vk.com/club239119877" target="_blank" class="order-btn">💫 Заказать расклад у таролога</a>
+        </div>
+
+        <div class="loading" id="loading">✨ Раскрываю карты судьбы...</div>
+
+        <div class="card-display" id="cardDisplay">
+            <img class="card-image" id="cardImage" src="" alt="Карта Таро">
+            <h2 class="card-name" id="cardName"></h2>
+            <p class="card-description" id="cardDescription"></p>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 Таро от Милы | Все права защищены</p>
+        </div>
+    </div>
+
+    <script>
+        // Создание звёздного фона
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // База данных карт Таро (78 карт)
+        const tarotCards = [
+            // Старшие Арканы (0-21)
+            {
+                id: 0,
+                name: "Шут (Дурак)",
+                imageUrl: "https://image.qwenlm.ai/public_source/240820f7-06bd-4350-8fa8-9dc507052e8b/12378e269-e2ad-48be-8480-a5c0de460292.png",
+                description: "Новые начинания, спонтанность, вера в жизнь. Карта символизирует начало пути, невинность и безграничные возможности. Доверьтесь интуиции и сделайте прыжок веры."
+            },
+            {
+                id: 1,
+                name: "Маг",
+                imageUrl: "https://image.qwenlm.ai/public_source/240820f7-06bd-4350-8fa8-9dc507052e8b/1e88affde-bf7b-49a5-a419-da0cac7e3545.png",
+                description: "Сила воли, мастерство, проявление желаний. У вас есть все инструменты для достижения цели. Время действовать и использовать свои таланты."
+            },
+            {
+                id: 2,
+                name: "Верховная Жрица",
+                imageUrl: "https://image.qwenlm.ai/public_source/240820f7-06bd-4350-8fa8-9dc507052e8b/177cdf314-75e2-41e8-882f-d20fd836e8a1.png",
+                description: "Интуиция, тайное знание, внутренний голос. Прислушайтесь к своей интуиции. Ответы находятся внутри вас, а не во внешнем мире."
+            },
+            {
+                id: 3,
+                name: "Императрица",
+                imageUrl: "https://image.qwenlm.ai/public_source/240820f7-06bd-4350-8fa8-9dc507052e8b/11db095b6-f86d-4cc8-b01d-1a6599d5dba3.png",
+                description: "Изобилие, плодородие, материнская энергия. Время творчества и роста. Наслаждайтесь красотой жизни и заботьтесь о себе и близких."
+            },
+            {
+                id: 4,
+                name: "Император",
+                imageUrl: "",
+                description: "Власть, структура, отцовская фигура. Необходимость навести порядок и взять контроль. Стабильность и дисциплина приведут к успеху."
+            },
+            {
+                id: 5,
+                name: "Иерофант",
+                imageUrl: "",
+                description: "Традиции, духовное руководство, обучение. Следуйте проверенным путям. Мудрость приходит через опыт и наставничество."
+            },
+            {
+                id: 6,
+                name: "Влюблённые",
+                imageUrl: "https://image.qwenlm.ai/public_source/240820f7-06bd-4350-8fa8-9dc507052e8b/15a947487-4c71-4ecf-8c26-c26a9edd5aa3.png",
+                description: "Любовь, гармония, важный выбор. Карта указывает на глубокие отношения или необходимость сделать выбор сердцем. Следуйте за любовью."
+            },
+            {
+                id: 7,
+                name: "Колесница",
+                imageUrl: "https://image.qwenlm.ai/public_source/240820f7-06bd-4350-8fa8-9dc507052e8b/1d5813a16-5f3c-4435-9a1a-031df792111f.png",
+                description: "Победа, решимость, контроль. Вы движетесь к цели с силой и уверенностью. Настойчивость и воля приведут к триумфу."
+            },
+            {
+                id: 8,
+                name: "Сила",
+                imageUrl: "https://image.qwenlm.ai/public_source/240820f7-06bd-4350-8fa8-9dc507052e8b/1fca6b7e0-823f-434f-8d00-d4d8323eab20.png",
+                description: "Внутренняя сила, мужество, терпение. Истинная сила не в грубости, а в мягкости и сострадании. Укротите свои страхи любовью."
+            },
+            {
+                id: 9,
+                name: "Отшельник",
+                imageUrl: "https://image.qwenlm.ai/public_source/240820f7-06bd-4350-8fa8-9dc507052e8b/1f941c91c-bc82-45c5-bd47-264462456dfe.png",
+                description: "Уединение, поиск истины, внутренний свет. Время для самопознания и размышлений. Ответы придут в тишине и уединении."
+            },
+            {
+                id: 10,
+                name: "Колесо Фортуны",
+                imageUrl: "https://image.qwenlm.ai/public_source/240820f7-06bd-4350-8fa8-9dc507052e8b/11a17e107-bd33-45d7-8adf-4a0c99015638.png",
+                description: "Судьба, перемены, циклы жизни. Жизнь меняется, и это неизбежно. Примите перемены с открытым сердцем и доверьтесь потоку."
+            },
+            {
+                id: 11,
+                name: "Справедливость",
+                imageUrl: "",
+                description: "Баланс, карма, истина. Каждое действие имеет последствия. Будьте честны с собой и другими. Справедливость восторжествует."
+            },
+            {
+                id: 12,
+                name: "Повешенный",
+                imageUrl: "",
+                description: "Пауза, жертва, новый взгляд. Иногда нужно остановиться и посмотреть на ситуацию под другим углом. Отпустите контроль."
+            },
+            {
+                id: 13,
+                name: "Смерть",
+                imageUrl: "",
+                description: "Трансформация, конец цикла, обновление. Не бойтесь перемен. Старое должно уйти, чтобы освободить место для нового."
+            },
+            {
+                id: 14,
+                name: "Умеренность",
+                imageUrl: "",
+                description: "Баланс, терпение, гармония. Найдите золотую середину во всём. Умеренность и терпение приведут к успеху."
+            },
+            {
+                id: 15,
+                name: "Дьявол",
+                imageUrl: "",
+                description: "Зависимость, иллюзии, материализм. Освободитесь от того, что вас束缚ет. Recognize your chains and break free."
+            },
+            {
+                id: 16,
+                name: "Башня",
+                imageUrl: "",
+                description: "Разрушение, внезапные перемены, откровение. Старые структуры рушатся, чтобы освободить место для истины. Примите неизбежное."
+            },
+            {
+                id: 17,
+                name: "Звезда",
+                imageUrl: "",
+                description: "Надежда, вдохновение, духовное руководство. После бури приходит спокойствие. Верьте в лучшее и следуйте за своей звездой."
+            },
+            {
+                id: 18,
+                name: "Луна",
+                imageUrl: "https://image.qwenlm.ai/public_source/240820f7-06bd-4350-8fa8-9dc507052e8b/1b41252ff-e3bc-4b2f-8284-e4acc2b01c11.png",
+                description: "Иллюзии, страхи, подсознание. Не всё так, как кажется. Доверьтесь интуиции и будьте осторожны в принятии решений."
+            },
+            {
+                id: 19,
+                name: "Солнце",
+                imageUrl: "https://image.qwenlm.ai/public_source/240820f7-06bd-4350-8fa8-9dc507052e8b/1fbc2a689-b61c-4b20-a78d-627f77634918.png",
+                description: "Радость, успех, жизненная сила. Время счастья и достижений. Наслаждайтесь моментом и делитесь своим светом с миром."
+            },
+            {
+                id: 20,
+                name: "Суд",
+                imageUrl: "",
+                description: "Возрождение, призвание, прощение. Время подвести итоги и простить. Услышьте свой внутренний зов и следуйте ему."
+            },
+            {
+                id: 21,
+                name: "Мир",
+                imageUrl: "",
+                description: "Завершение, целостность, достижение. Цикл завершён успешно. Наслаждайтесь плодами своего труда и готовьтесь к новому пути."
+            },
+
+            // Младшие Арканы - Жезлы (22-35)
+            {
+                id: 22,
+                name: "Туз Жезлов",
+                imageUrl: "",
+                description: "Новое вдохновение, творческий импульс, страсть. Начало нового проекта или идеи. Энергия и энтузиазм наполняют вас."
+            },
+            {
+                id: 23,
+                name: "Двойка Жезлов",
+                imageUrl: "",
+                description: "Планирование, выбор пути, личные решения. Вы стоите перед выбором. Взвесьте все варианты и примите решение."
+            },
+            {
+                id: 24,
+                name: "Тройка Жезлов",
+                imageUrl: "",
+                description: "Расширение, сотрудничество, предвидение. Ваши планы начинают реализовываться. Смотрите в будущее с оптимизмом."
+            },
+            {
+                id: 25,
+                name: "Четвёрка Жезлов",
+                imageUrl: "",
+                description: "Празднование, гармония, дом. Время радоваться достижениям. Наслаждайтесь стабильностью и теплом близких отношений."
+            },
+            {
+                id: 26,
+                name: "Пятёрка Жезлов",
+                imageUrl: "",
+                description: "Конфликт, конкуренция, борьба. Препятствия и разногласия. Найдите конструктивный способ разрешения конфликта."
+            },
+            {
+                id: 27,
+                name: "Шестёрка Жезлов",
+                imageUrl: "",
+                description: "Победа, признание, успех. Ваши усилия вознаграждены. Наслаждайтесь заслуженным триумфом и признанием."
+            },
+            {
+                id: 28,
+                name: "Семёрка Жезлов",
+                imageUrl: "",
+                description: "Защита, настойчивость, вызов. Вам приходится отстаивать свою позицию. Будьте стойки и не сдавайтесь."
+            },
+            {
+                id: 29,
+                name: "Восьмёрка Жезлов",
+                imageUrl: "",
+                description: "Быстрое движение, прогресс, действие. События развиваются стремительно. Будьте готовы к быстрым переменам."
+            },
+            {
+                id: 30,
+                name: "Девятка Жезлов",
+                imageUrl: "",
+                description: "Стойкость, выносливость, последняя битва. Вы устали, но близки к цели. Соберите последние силы."
+            },
+            {
+                id: 31,
+                name: "Десятка Жезлов",
+                imageUrl: "",
+                description: "Бремя, ответственность, перегрузка. Вы взяли на себя слишком много. Научитесь делегировать и отпускать."
+            },
+            {
+                id: 32,
+                name: "Паж Жезлов",
+                imageUrl: "",
+                description: "Энтузиазм, новые идеи, исследования. Молодая энергия и любопытство. Будьте открыты новому опыту."
+            },
+            {
+                id: 33,
+                name: "Рыцарь Жезлов",
+                imageUrl: "",
+                description: "Действие, приключение, импульсивность. Страстное стремление к цели. Действуйте решительно, но обдуманно."
+            },
+            {
+                id: 34,
+                name: "Королева Жезлов",
+                imageUrl: "",
+                description: "Уверенность, харизма, независимость. Вы излучаете силу и привлекательность. Используйте свою энергию мудро."
+            },
+            {
+                id: 35,
+                name: "Король Жезлов",
+                imageUrl: "",
+                description: "Лидерство, видение, предприимчивость. Вы прирождённый лидер. Ведите за собой с мудростью и вдохновением."
+            },
+
+            // Младшие Арканы - Кубки (36-49)
+            {
+                id: 36,
+                name: "Туз Кубков",
+                imageUrl: "",
+                description: "Новая любовь, эмоциональное начало, вдохновение. Откройте сердце для новых чувств и возможностей."
+            },
+            {
+                id: 37,
+                name: "Двойка Кубков",
+                imageUrl: "",
+                description: "Партнёрство, взаимность, союз. Гармоничные отношения и взаимопонимание. Цените связь с близкими."
+            },
+            {
+                id: 38,
+                name: "Тройка Кубков",
+                imageUrl: "",
+                description: "Дружба, празднование, сообщество. Радость от общения с друзьями. Наслаждайтесь поддержкой близких."
+            },
+            {
+                id: 39,
+                name: "Четвёрка Кубков",
+                imageUrl: "",
+                description: "Апатия, неудовлетворённость, созерцание. Вы упускаете возможности из-за сосредоточенности на негативе. Откройте глаза."
+            },
+            {
+                id: 40,
+                name: "Пятёрка Кубков",
+                imageUrl: "",
+                description: "Потеря, сожаление, горе. Не зацикливайтесь на потерях. Обратите внимание на то, что ещё осталось."
+            },
+            {
+                id: 41,
+                name: "Шестёрка Кубков",
+                imageUrl: "",
+                description: "Ностальгия, воспоминания, невинность. Возвращение к прошлому или детским радостям. Цените простые моменты."
+            },
+            {
+                id: 42,
+                name: "Семёрка Кубков",
+                imageUrl: "",
+                description: "Иллюзии, выбор, фантазии. Слишком много вариантов могут запутать. Будьте реалистичны в своих ожиданиях."
+            },
+            {
+                id: 43,
+                name: "Восьмёрка Кубков",
+                imageUrl: "",
+                description: "Уход, поиск смысла, разочарование. Время оставить то, что больше не служит вам. Ищите глубинный смысл."
+            },
+            {
+                id: 44,
+                name: "Девятка Кубков",
+                imageUrl: "",
+                description: "Исполнение желаний, удовлетворение, счастье. Ваши мечты сбываются. Наслаждайтесь достигнутым."
+            },
+            {
+                id: 45,
+                name: "Десятка Кубков",
+                imageUrl: "",
+                description: "Семейное счастье, гармония, эмоциональное fulfillment. Идеальная гармония в отношениях. Наслаждайтесь любовью."
+            },
+            {
+                id: 46,
+                name: "Паж Кубков",
+                imageUrl: "",
+                description: "Творческие идеи, интуиция, чувствительность. Новые эмоциональные возможности. Будьте открыты вдохновению."
+            },
+            {
+                id: 47,
+                name: "Рыцарь Кубков",
+                imageUrl: "",
+                description: "Романтика, очарование, идеализм. Следуйте за своим сердцем. Романтические возможности на горизонте."
+            },
+            {
+                id: 48,
+                name: "Королева Кубков",
+                imageUrl: "",
+                description: "Сострадание, интуиция, эмоциональная зрелость. Вы глубоко чувствуете и понимаете других. Доверьтесь интуиции."
+            },
+            {
+                id: 49,
+                name: "Король Кубков",
+                imageUrl: "",
+                description: "Эмоциональный баланс, мудрость, дипломатичность. Вы управляете эмоциями с мудростью. Будьте опорой для других."
+            },
+
+            // Младшие Арканы - Мечи (50-63)
+            {
+                id: 50,
+                name: "Туз Мечей",
+                imageUrl: "",
+                description: "Ясность ума, прорыв, истина. Момент озарения и чёткого понимания. Используйте силу разума мудро."
+            },
+            {
+                id: 51,
+                name: "Двойка Мечей",
+                imageUrl: "",
+                description: "Тупик, сложный выбор, компромисс. Вы избегаете принятия решения. Пора снять повязку с глаз и увидеть правду."
+            },
+            {
+                id: 52,
+                name: "Тройка Мечей",
+                imageUrl: "",
+                description: "Сердечная боль, предательство, горе. Болезненный опыт, но необходимый для роста. Позвольте себе горевать."
+            },
+            {
+                id: 53,
+                name: "Четвёрка Мечей",
+                imageUrl: "",
+                description: "Отдых, восстановление, медитация. Время для паузы и восстановления сил. Тишина принесёт исцеление."
+            },
+            {
+                id: 54,
+                name: "Пятёрка Мечей",
+                imageUrl: "",
+                description: "Конфликт, поражение, нечестность. Пиррова победа. Подумайте, стоит ли борьба потерь."
+            },
+            {
+                id: 55,
+                name: "Шестёрка Мечей",
+                imageUrl: "",
+                description: "Переход, движение вперёд, оставление прошлого. Вы движетесь к лучшим временам. Отпустите старое."
+            },
+            {
+                id: 56,
+                name: "Семёрка Мечей",
+                imageUrl: "",
+                description: "Обман, хитрость, стратегия. Кто-то действует нечестно. Будьте осторожны и проверяйте факты."
+            },
+            {
+                id: 57,
+                name: "Восьмёрка Мечей",
+                imageUrl: "",
+                description: "Ограничения, беспомощность, самообман. Вы сами себя ограничиваете. Освободитесь от ментальных оков."
+            },
+            {
+                id: 58,
+                name:
